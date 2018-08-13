@@ -26,12 +26,12 @@
 
                             <h4>About You</h4>
                             <div class="form-group">
-                                <label for="reserve-name">Name (Required)</label>
-                                <input type="text" class="form-control" id="reserve-name">
+                                <label for="name">Name (Required)</label>
+                                <input type="text" class="form-control" id="name">
                             </div>
                             <div class="form-group">
-                                <label for="reserve-phone">Link to Photo Image (Required)</label>
-                                <input type="text" class="form-control" id="reserve-phone">
+                                <label for="photo">Link to Photo Image (Required)</label>
+                                <input type="text" class="form-control" id="photo">
                             </div>
 
                             <hr>
@@ -163,55 +163,57 @@
         </footer>
     </div>
 
+    <div class="modal fade" id="results-modal" tabindex="-1" role="dialog" aria-labelledby="results-modal" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title">Best Match</h1>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h4 id="match-name"></h4>
+                    <img src="" alt="Match Photo" id="match-photo">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
 
 <script type="text/javascript">
 
-    // In this code below we create the Front-end JavaScript which "POSTS" our form data to our express server.
-    // In essence, when the user hits submit, jQuery grabs all of the fields then sends a post request to our api
-    // Our api recognizes the route (/api/tables)... and then runs the associated code (found in api-routes.js).
-    // In this case the associated code "saves" the data to the table-data.js file or waitinglist-data.js file
-
     $(".submit").on("click", function(event) {
-      event.preventDefault();
+        event.preventDefault();
 
-      // Here we grab the form elements
-      var newReservation = {
-        customerName: $("#reserve-name").val().trim(),
-        phoneNumber: $("#reserve-phone").val().trim(),
-        customerEmail: $("#reserve-email").val().trim(),
-        customerID: $("#reserve-unique-id").val().trim()
-      };
+        var newFriend = {
+            name: $("#name").val().trim(),
+            photo: $("#photo").val().trim(),
+            scores: []
+        };
 
-      console.log(newReservation);
+        if (newFriend.name === "" || newFriend.photo === "") {
+            alert("Please fill out all fields before submitting!")
+        } else {
 
-      // This line is the magic. It"s very similar to the standard ajax function we used.
-      // Essentially we give it a URL, we give it the object we want to send, then we have a "callback".
-      // The callback is the response of the server. In our case, we set up code in api-routes that "returns" true or false
-      // depending on if a tables is available or not.
+            // Get scores
+            for (i = 1; i < 11; i++) {
+                var score = parseInt($(`#score${i}`).val().trim());
+                newFriend.scores.push(score);
+            };
 
-      $.post("/api/tables", newReservation,
-        function(data) {
+            $.post("/api/friends", newFriend, function(data) {
+                $("#match-name").text(data.name);
+                $("#match-photo").attr("src", data.photo);
+                $("#results-modal").modal('show');
+            });
 
-          // If a table is available... tell user they are booked.
-          if (data) {
-            alert("Yay! You are officially booked!");
-          }
-
-          // If a table is available... tell user they on the waiting list.
-          else {
-            alert("Sorry you are on the wait list");
-          }
-
-          // Clear the form when submitting
-          $("#reserve-name").val("");
-          $("#reserve-phone").val("");
-          $("#reserve-email").val("");
-          $("#reserve-unique-id").val("");
-
-        });
-
+        }
     });
 
 </script>
